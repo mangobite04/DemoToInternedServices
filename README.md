@@ -1,5 +1,4 @@
-# DemoToInternedServices
-# AWS Architecture Setup with AWS CLI
+# Demo To InternedServices - AWS Architecture Setup
 
 There are two parts to the setup,
 - **Part 1** - Setting up the network infrastructure (VPC, Subnets, Security Groups)
@@ -66,13 +65,13 @@ aws ec2 create-tags --resources $internetGatewayId --tags 'Key=Name,Value=tmpVPC
 |              | AVZ2               |               | Spare Subnet        |                |                 |
 
 
-### Creating subnets in AVZ1
+### Creating subnets in Avaiability Zone - AVZ1
 ```sh
 EUWest1a_PvtSubnetID=$(aws ec2 create-subnet --vpc-id "$vpcID" --cidr-block 10.15.0.0/25 --availability-zone eu-west-1a --query 'Subnet.SubnetId' --output text)
 EUWest1a_PubSubnetID=$(aws ec2 create-subnet --vpc-id "$vpcID" --cidr-block 10.15.0.128/26 --availability-zone eu-west-1a --query 'Subnet.SubnetId' --output text)
 EUWest1a_SpareSubnetID=$(aws ec2 create-subnet --vpc-id "$vpcID" --cidr-block XX.XX.XX./XX --availability-zone eu-west-1a --query 'Subnet.SubnetId' --output text)
 ```
-##### Tag the subnet ID's for AVZ1
+##### Tag the subnet ID's for Avaiability Zone - AVZ1
 ```sh
 
 aws ec2 create-tags --resources "$EUWest1a_PvtSubnetID" --tags 'Key=Name,Value=az1-eu-west-1a-pvt-Subnet'
@@ -81,13 +80,13 @@ aws ec2 create-tags --resources "$EUWest1a_SpareSubnetID" --tags 'Key=Name,Value
 
 ```
 
-### Creating subnets in AVZ2
+### Creating subnets in Avaiability Zone - AVZ2
 ```sh
 EUWest1b_DbSubnetID=$(aws ec2 create-subnet --vpc-id "$vpcID" --cidr-block 10.15.1.0/25 --availability-zone eu-west-1b --query 'Subnet.SubnetId' --output text)
 EUWest1b_WebSubnetID=$(aws ec2 create-subnet --vpc-id "$vpcID" --cidr-block 10.15.1.128/25 --availability-zone eu-west-1b --query 'Subnet.SubnetId' --output text)
 EUWest1b_SpareSubnetID=$(aws ec2 create-subnet --vpc-id "$vpcID" --cidr-block XX.XX.XX./XX --availability-zone eu-west-1b --query 'Subnet.SubnetId' --output text)
 ```
-##### Tag the subnet ID's for AVZ2
+##### Tag the subnet ID's for Avaiability Zone - AVZ2
 ```sh
 aws ec2 create-tags --resources "$EUWest1b_PvtSubnetID" --tags 'Key=Name,Value=az1-eu-west-1c-Pvt-Subnet'
 aws ec2 create-tags --resources "$EUWest1b_PubSubnetID" --tags 'Key=Name,Value=az1-eu-west-1c-Pub-Subnet'
@@ -109,7 +108,7 @@ aws ec2 associate-route-table --route-table-id "$routeTableID" --subnet-id "$EUW
 
 ### Creating a security group
  - Group Name - `WebSecGrp`
- - Description - `Web Security Group for Server`
+ - Description - `Web Security Group for Server's`
 
 ```sh
 WebSecGrpID=$(aws ec2 create-security-group --group-name WebSecGrp \
