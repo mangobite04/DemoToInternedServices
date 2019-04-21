@@ -2,6 +2,7 @@
 
 There are two parts to the setup,
 - **Part 1** - Setting up the network infrastructure (VPC, Subnets, Security Groups)
+- **Part 2** - Hosting Application on AWS (Create EC2, Security Groups)
 
 Assuming you have already setup your AWS CLI for Region `EU West (Ireland)`.
 
