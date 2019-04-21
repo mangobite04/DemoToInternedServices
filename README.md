@@ -1,4 +1,4 @@
-# Demo To InternedServices - AWS Architecture Setup
+# Demo To Interned Services - AWS Architecture Setup
 
 There are two parts to the setup,
 - **Part 1** - Setting up the network infrastructure (VPC, Subnets, Security Groups)
