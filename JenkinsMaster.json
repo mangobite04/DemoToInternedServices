@@ -4,11 +4,7 @@
   "Description" : "AWS CloudFormation Sample Template: Create an Amazon EC2 instance. This example creates an EC2 security group for the instance to give you SSH access.",
   "Mappings" : {
       "RegionMap" : {
-          "us-east-1" : { "AMI" : "ami-31616a57" },
-          "us-west-1" : { "AMI" : "ami-655a0a20" },
-          "eu-west-1" : { "AMI" : "ami-d834aba1" },
-          "ap-northeast-1" : { "AMI" : "ami-8e08a38f" },
-          "ap-southeast-1" : { "AMI" : "ami-72621c20" }
+          "eu-west-1" : { "AMI" : "ami-d834aba1" }
       }
   },
   "Parameters" : {
@@ -53,9 +49,9 @@
               "Install" : {
                   "packages" : {
                       "yum" : {
-                          "httpd"  : [],
-			  "wget"   : [],
-			  "curl"   : []
+                          "httpd"        	: [],
+						  "wget"			: [],
+						  "curl"			: []
                       }
                   },
 				 "services" : {
@@ -94,7 +90,7 @@
       "Properties" : {
         "GroupDescription" : "Enable SSH & HTTP",
         "SecurityGroupIngress" : [
-		  {"IpProtocol" : "tcp", "FromPort" : "8080", "ToPort" : "8080", "CidrIp" : "87.213.122.168/32"},
+		  {"IpProtocol" : "tcp", "FromPort" : "8070", "ToPort" : "8070", "CidrIp" : "87.213.122.168/32"},
           {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "87.213.122.168/32"},
           {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHAddress"}}
         ]
