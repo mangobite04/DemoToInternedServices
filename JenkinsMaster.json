@@ -1,0 +1,127 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "AWS CloudFormation Sample Template: Create an Amazon EC2 instance. This example creates an EC2 security group for the instance to give you SSH access.",
+  "Mappings" : {
+      "RegionMap" : {
+          "us-east-1" : { "AMI" : "ami-31616a57" },
+          "us-west-1" : { "AMI" : "ami-655a0a20" },
+          "eu-west-1" : { "AMI" : "ami-d834aba1" },
+          "ap-northeast-1" : { "AMI" : "ami-8e08a38f" },
+          "ap-southeast-1" : { "AMI" : "ami-72621c20" }
+      }
+  },
+  "Parameters" : {
+    "KeyName": {
+      "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Default" : "my_keypair_name",
+      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
+    },
+
+    "InstanceType" : {
+      "Description" : "Jenkins Server EC2 instance type",
+      "Type" : "String",
+      "Default" : "t2.micro",
+      "AllowedValues" : ["t2.micro", "t2.small", "t2.medium"],
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "SSHAddress" : {
+      "Description" : "The IP address range that can be used to SSH to the EC2 instances",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "87.213.122.168/32",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+   }
+  },
+
+  "Resources" : {
+    "WebServerInstance" : {
+      "Type" : "AWS::EC2::Instance",
+
+      "Metadata" : {
+          "Comment1" : "Configure the bootstrap helpers to install the Apache Web Server and PHP",
+          "Comment2" : "Save website content to /var/www/html/index.php",
+
+          "AWS::CloudFormation::Init" : {
+              "configSets" : {
+                  "Install" : [ "Install" ]
+              },
+              "Install" : {
+                  "packages" : {
+                      "yum" : {
+                          "httpd"     : [],
+						              "wget"			: [],
+						              "curl"			: []
+                      }
+                  },
+				 "services" : {
+					"sysvinit" : {  
+						"httpd"   : { "enabled" : "true", "ensureRunning" : "true" }}}}}
+	 },
+      "Properties" : {
+        "InstanceType" : { "Ref" : "InstanceType" },
+		"Tags" : [
+			{
+				"Key" : "Name",
+				"Value" : "Jenkins-Testing"
+			}
+			],
+        "SecurityGroups" : [ { "Ref" : "WebServerSecurityGroup" } ],
+        "KeyName" : { "Ref" : "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+          "#!/bin/bash -xe\n",
+		  "yum remove java -y","\n",
+		  "wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo","\n",
+		  "rpm --import http://pkg.jenkins-ci.org/redhat-stable/jenkins-ci.org.key","\n",
+		  "yum install jenkins -y","\n",
+		  "yum install java-1.8.0 -y","\n",
+		  "sed -i 's/8080/8070/g' /etc/sysconfig/jenkins","\n",
+		  "/sbin/service jenkins start","\n",
+		  "/sbin/chkconfig --add jenkins","\n",
+		  "/sbin/chkconfig jenkins on","\n"
+        ]]}}
+
+      }
+    },
+
+    "WebServerSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable SSH & HTTP",
+        "SecurityGroupIngress" : [
+		  {"IpProtocol" : "tcp", "FromPort" : "8080", "ToPort" : "8080", "CidrIp" : "87.213.122.168/32"},
+          {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "87.213.122.168/32"},
+          {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHAddress"}}
+        ]
+      }
+    }
+  },
+
+  "Outputs" : {
+    "InstanceId" : {
+      "Description" : "InstanceId of the newly created EC2 instance",
+      "Value" : { "Ref" : "WebServerInstance" }
+    },
+    "AZ" : {
+      "Description" : "Availability Zone of the newly created EC2 instance",
+      "Value" : { "Fn::GetAtt" : [ "WebServerInstance", "AvailabilityZone" ] }
+    },
+    "PublicDNS" : {
+      "Description" : "Public DNSName of the newly created EC2 instance",
+      "Value" : { "Fn::GetAtt" : [ "WebServerInstance", "PublicDnsName" ] }
+    },
+    "PublicIP" : {
+      "Description" : "Public IP address of the newly created EC2 instance",
+      "Value" : { "Fn::GetAtt" : [ "WebServerInstance", "PublicIp" ] }
+    },
+    "WebsiteURL" : {
+      "Description" : "URL for newly created LAMP stack",
+      "Value" : { "Fn::Join" : ["", ["http://", { "Fn::GetAtt" : [ "WebServerInstance", "PublicDnsName" ]}]] }
+    }
+  }
+}
