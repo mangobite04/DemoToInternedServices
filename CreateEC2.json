@@ -1,0 +1,55 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+    "Mappings" : {
+        "RegionMap" : {
+            "eu-west-1" : { "AMI" : "ami-d834aba1" }
+        }
+    },
+	"Parameters": {
+		"InstanceType": {
+				"Description": "Select one of the possible instance types",
+				"Type": "String",
+				"Default": "t2.micro",
+				"AllowedValues": ["t2.micro", "t2.small", "t2.medium"]
+			}
+	},
+  "Resources" : {
+        "SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Security Group for Instance",
+                "GroupName": "securitygroupfortest",
+                "VpcId": "vpc-1922d07f",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": "87.213.122.168/32"
+                    }
+                ]
+            }
+        },
+      "Ec2Instance" : {
+          "Type" : "AWS::EC2::Instance",
+		  "DependsOn": "SecurityGroup",
+          "Properties" : {
+				"SubnetId": "subnet-01b05349",
+				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+                "KeyName": "my_keypair_name",
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "SecurityGroup"
+                    }
+                ],
+				"InstanceType": {"Ref": "InstanceType"}
+          }
+      }
+  },
+    "Outputs": {
+        "PublicName": {
+            "Value": {"Fn::GetAtt": ["Ec2Instance", "PublicDnsName"]},
+            "Description": "Public name (connect via SSH)"
+        }   
+    }
+}
