@@ -1,0 +1,303 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Description": "AWS CloudFormation Sample Template ELBGuidedAutoScalingRollingUpdates: This example creates an auto scaling group behind a load balancer with a simple health check. The Auto Scaling launch configuration includes an update policy that will keep 2 instances running while doing an autoscaling rolling update. The update will roll forward only when the ELB health check detects an updated instance in-service.",
+
+  "Mappings" : {
+      "RegionMap" : {
+          "eu-west-1" : { "AMI" : "ami-d834aba1" }
+      }
+  },
+    
+  "Parameters": {
+    "InstanceType": {
+      "Description": "WebServer EC2 instance type",
+      "Type": "String",
+      "Default": "t2.micro",
+      "AllowedValues": [ "t2.nano", "t2.micro", "t2.small", "t2.medium" ],
+      "ConstraintDescription": "Must be a valid EC2 instance type."
+    },
+
+    "KeyName": {
+      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription" : "Must be the name of an existing EC2 KeyPair.",
+      "Default": "my_keypair_name"
+      },
+
+    "InstanceName": {
+      "Description": "Logical instance name seen in AWS console",
+      "Type": "String",
+      "Default": "eu00espocrm01"
+    },
+	
+    "SSHLocation" : {
+      "Description" : "The IP address range that can be used to SSH to the EC2 instances",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "0.0.0.0/0",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x."
+    }
+  },
+
+
+  "Resources": {
+    "WebServerGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "CreationPolicy" : {
+        "ResourceSignal" : {
+          "Timeout" : "PT15M",
+          "Count"   : "2"
+        }
+      },
+      "UpdatePolicy" : {
+        "AutoScalingRollingUpdate" : {
+        "MaxBatchSize" : "1",
+        "MinInstancesInService" : "1",
+        "PauseTime" : "PT15M",
+        "WaitOnResourceSignals": "true"
+        }
+      },
+      "Properties": {
+        "AvailabilityZones": { "Fn::GetAZs": "" },
+        "LaunchConfigurationName": { "Ref": "LaunchConfig" },
+        "MinSize": "3",
+        "MaxSize": "4",
+        "Tags": [
+            {
+                "Key": "Type",
+                "Value": "DTA",
+                "PropagateAtLaunch": "true"
+            },
+            {
+                "Key": "Use",
+                "Value": "WebServer",
+                "PropagateAtLaunch": "true"
+            },
+            {
+                "Key": "Name",
+                "Value": {
+                    "Ref": "InstanceName"
+                },
+                "PropagateAtLaunch": "true"
+            }
+        ],
+        "LoadBalancerNames": [ { "Ref": "ElasticLoadBalancer" } ]
+      }
+    },
+
+    "LaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Metadata" : {
+        "AWS::CloudFormation::Init" : {
+          "configSets" : {
+            "full_install" : [ "install_cfn", "install_app", "verify_instance_health" ]
+          },
+
+          "install_cfn" : {
+            "files" : {
+              "/etc/cfn/cfn-hup.conf" : {
+                "content" : { "Fn::Join" : ["", [
+                  "[main]\n",
+                  "stack=", { "Ref" : "AWS::StackId" }, "\n",
+                  "region=", { "Ref" : "AWS::Region" }, "\n"
+                ]]},
+                "mode"    : "000400",
+                "owner"   : "root",
+                "group"   : "root"
+              },
+
+              "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
+                "content": { "Fn::Join" : ["", [
+                  "[cfn-auto-reloader-hook]\n",
+                  "triggers=post.update\n",
+                  "path=Resources.WebServerInstance.Metadata.AWS::CloudFormation::Init\n",
+                  "action=/opt/aws/bin/cfn-init -v ",
+                  "         --stack ", { "Ref" : "AWS::StackName" },
+                  "         --resource WebServerInstance ",
+                  "         --configsets full_install ",
+                  "         --region ", { "Ref" : "AWS::Region" }, "\n",
+                  "runas=root\n"
+                ]]}
+              }
+            },
+
+            "services" : {
+              "sysvinit" : {
+                "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
+                              "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"]}
+              }
+            }
+          },
+
+          "install_app" : {
+            "packages" : {
+              "yum" : {
+                "httpd" : [],
+				"curl"	: [],
+				"php"	: [],
+                "php-mysql"	: []
+              }
+            },
+
+            "files" : {
+                "/var/www/html/index.php" : {
+                    "content" : { "Fn::Join" : [ "", [
+
+                        "<html>\n",
+                        "  <body>\n",
+						"    <h1>\n",
+                        "    <?php\n",
+                        "      // Setup a handle for CURL\n",
+                        "      $curl_handle=curl_init();\n",
+                        "      curl_setopt($curl_handle,CURLOPT_CONNECTTIMEOUT,2);\n",
+                        "      curl_setopt($curl_handle,CURLOPT_RETURNTRANSFER,1);\n",
+			
+						"      // Get the EC2_AVAIL_ZONE of the intance from the instance metadata\n",
+						"      curl_setopt($curl_handle,CURLOPT_URL,'http://169.254.169.254/latest/meta-data/placement/availability-zone');\n",
+                        "      $ec2_avail_zone = curl_exec($curl_handle);\n",
+                        "      if (empty($ec2_avail_zone))\n",
+                        "      {\n",
+                        "        print \"Note: Sorry, for some reason, we got no ec2_avail_zone back <br />\";\n",
+                        "      }\n",
+                        "      else\n",
+                        "      {\n",
+                        "        print \"EC2 AWS Zone Information = \" . $ec2_avail_zone . \"<br />\";\n",
+                        "      }\n",
+                        
+                        "    ?>\n",
+						"    <h1>\n",
+                        "  </body>\n",
+                        "</html>\n"
+
+                    ]]},
+                    "mode"  : "000600",
+                    "owner" : "apache",
+                    "group" : "apache"
+                }
+            },
+
+            "services" : {
+              "sysvinit" : {
+                "httpd"    : { "enabled" : "true", "ensureRunning" : "true" }
+              }
+            }
+          },
+
+          "verify_instance_health" : {
+            "commands" : {
+              "ELBHealthCheck" : {
+                "command" : { "Fn::Join" : ["", [
+                  "until [ \"$state\" == \"\\\"InService\\\"\" ]; do ",
+                  "  state=$(aws --region ", { "Ref" : "AWS::Region" }, " elb describe-instance-health ",
+                  "              --load-balancer-name ", { "Ref" : "ElasticLoadBalancer" },
+                  "              --instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id) ",
+                  "              --query InstanceStates[0].State); ",
+                  "  sleep 10; ",
+                  "done"
+                ]]}
+              }
+            }
+          }
+        }
+      },
+      "Properties": {
+        "KeyName": { "Ref": "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "InstanceType": { "Ref": "InstanceType" },
+        "SecurityGroups": [ { "Ref": "InstanceSecurityGroup" } ],
+        "IamInstanceProfile" : { "Ref" : "WebServerInstanceProfile" },
+        "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
+             "#!/bin/bash -xe\n",
+             "yum update -y aws-cfn-bootstrap\n",
+			 
+             "/opt/aws/bin/cfn-init -v ",
+             "         --stack ", { "Ref" : "AWS::StackName" },
+             "         --resource LaunchConfig ",
+             "         --configsets full_install ",
+             "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+             "/opt/aws/bin/cfn-signal -e $? ",
+             "         --stack ", { "Ref" : "AWS::StackName" },
+             "         --resource WebServerGroup ",
+             "         --region ", { "Ref" : "AWS::Region" }, "\n"
+        ]]}}
+      }
+    },
+
+    "ElasticLoadBalancer": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+        "AvailabilityZones": { "Fn::GetAZs": "" },
+        "CrossZone" : "true",
+        "Listeners": [ {
+          "LoadBalancerPort": "80",
+          "InstancePort": "80",
+          "Protocol": "HTTP"
+        } ],
+        "HealthCheck": {
+          "Target": "HTTP:80/",
+          "HealthyThreshold": "3",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        }
+      }
+    },
+
+    "InstanceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enable SSH access and HTTP access on the configured port",
+        "SecurityGroupIngress": [
+          { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": { "Ref" : "SSHLocation" } },
+          { "IpProtocol": "tcp", "FromPort": "80", "ToPort": "80", "CidrIp": "0.0.0.0/0" }
+        ]
+      }
+    },
+
+    "WebServerInstanceProfile" : {
+        "Type": "AWS::IAM::InstanceProfile",
+        "Properties": {
+            "Path": "/",
+            "Roles": [ { "Ref": "DescribeHealthRole" } ]
+        }
+    },
+
+    "DescribeHealthRole" : {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+            "AssumeRolePolicyDocument": {
+                "Statement": [ {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": [ "ec2.amazonaws.com" ]
+                    },
+                    "Action": [ "sts:AssumeRole" ]
+                } ]
+            },
+            "Path": "/",
+            "Policies" : [{
+                "PolicyName": "describe-instance-health-policy",
+                "PolicyDocument": {
+                  "Statement": [{
+                          "Effect": "Allow",
+                          "Action": [ "elasticloadbalancing:DescribeInstanceHealth" ],
+                          "Resource": "*"
+                      }]
+                }
+            }]
+        }
+    }
+
+  },
+
+  "Outputs": {
+    "URL": {
+      "Description": "URL of the website",
+      "Value": { "Fn::Join": [ "", [ "http://", { "Fn::GetAtt": [ "ElasticLoadBalancer", "DNSName" ] } ] ] }
+    }
+  }
+}
