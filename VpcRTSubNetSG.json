@@ -4,19 +4,19 @@
   "Mappings": {
     "Networking": {
       "VPC": {
-        "CIDR": "10.15.0.0/23"
+        "CIDR": "10.0.0.0/16"
       },
       "PublicSubnetOne": {
-        "CIDR": "110.15.0.128/26"
+        "CIDR": "10.0.1.0/24"
       },
       "PublicSubnetTwo": {
-        "CIDR": "10.15.1.128/26"
+        "CIDR": "10.0.2.0/24"
       },
       "PrivateSubnetOne": {
-        "CIDR": "10.15.0.0/25"
+        "CIDR": "10.0.3.0/24"
       },
       "PrivateSubnetTwo": {
-        "CIDR": "10.15.1.128/26"
+        "CIDR": "10.0.4.0/24"
       }
     }
   },
