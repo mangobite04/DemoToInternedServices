@@ -7,16 +7,16 @@
         "CIDR": "10.15.0.0/23"
       },
       "PublicSubnetOne": {
-        "CIDR": "10.15.1.0/24"
+        "CIDR": "110.15.0.128/26"
       },
       "PublicSubnetTwo": {
-        "CIDR": "10.15.2.0/24"
+        "CIDR": "10.15.1.128/26"
       },
       "PrivateSubnetOne": {
-        "CIDR": "10.15.3.0/24"
+        "CIDR": "10.15.0.0/25"
       },
       "PrivateSubnetTwo": {
-        "CIDR": "10.15.4.0/24"
+        "CIDR": "10.15.1.128/26"
       }
     }
   },
