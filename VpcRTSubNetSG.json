@@ -36,7 +36,7 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "VPC with public and private subnets (2 AZs) & NAT"
+            "Value": "InternedServices-vpc"
           }
         ]
       }
@@ -144,7 +144,7 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "Public subnet #1"
+            "Value": "InternedServices-avz1-public-subnet"
           }
         ]
       }
@@ -187,7 +187,7 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "Public subnet #2"
+            "Value": "InternedServices-avz2-public-subnet"          
           }
         ]
       }
@@ -260,7 +260,7 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "Private subnet #1"
+            "Value": "InternedServices-avz1-private-subnet"
           }
         ]
       }
@@ -322,7 +322,7 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "Private subnet #2"
+            "Value": "InternedServices-avz2-private-subnet"
           }
         ]
       }
