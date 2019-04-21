@@ -5,7 +5,7 @@ There are two parts to the setup,
 
 Assuming you have already setup your AWS CLI for Region `EU West (Ireland)`.
 
-# Part 1 - Create VPC, Subnet, Security Group
+## Part 1 - Create VPC, Subnet, Security Group
 ### Setting the AWS Region
 ```sh
 export AWS_DEFAULT_REGION=eu-west-1
