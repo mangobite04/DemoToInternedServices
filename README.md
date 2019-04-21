@@ -48,7 +48,6 @@ aws ec2 create-tags --resources $internetGatewayId --tags 'Key=Name,Value=tmpVPC
 
 <sup>I have chosen /23 CIDR deliberately to allow us to create different subnets for our db, web instances and reserve some for the future. You might want to choose something else that works better for you. **Important:** _AWS reserves both the first four and the last IP address in each subnet's CIDR block. They're not available for use. The smallest subnet (and VPC) you can create uses a /28 netmask (16 IP addresses), and the largest uses a /16 netmask (65,536 IP addresses). Excellent resources to understand CIDR blocks [here](http://bradthemad.org/tech/notes/cidr_subnets.php) & [here](https://coderwall.com/p/ndm54w/creating-an-ec2-instance-in-a-vpc-with-the-aws-command-line-interface) & my quick help [gist](https://gist.github.com/miztiik/baecbaa67b1f10e38186d70e51c13a6c#file-cidr-ip-range)_<sup>
 
-
 ## Subnet Reservation for Server's [Database or WebServer]
 
 | VPC Range    | Availability Zone  | Region        | Reservation Purpose | IP Ranges      | IP Range        |
