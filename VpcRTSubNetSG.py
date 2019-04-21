@@ -154,5 +154,5 @@ ec2Client.authorize_security_group_ingress(
 	IpProtocol= 'tcp',
 	FromPort=3389,
 	ToPort=3389,
-	CidrIp='10.82.0.0/16'
+	CidrIp='10.15.0.0/16'
 )
