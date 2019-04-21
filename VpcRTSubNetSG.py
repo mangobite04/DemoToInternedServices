@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 import boto3
 
 CloudVar  = {}
