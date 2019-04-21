@@ -17,7 +17,6 @@ CloudVar['avz2_pubsubnet_CIDRange']   = "10.15.1.128/26"
 CloudVar['Project']                  = { 'Key':'Name', 'Value':'InternedServices'}
 CloudVar['tags']                     = [{'Key':'Owner', 'Value':'Devesh'},
                                           {'Key':'Environment', 'Value':'DEV'}]
-# CloudVar['EC2-KeyName']              = CloudVar['Project']['Value']+'-Key'
 
 # Creating a VPC, Subnet, and Gateway
 ec2         = boto3.resource ( 'ec2', region_name = CloudVar['REGION_NAME'] )
