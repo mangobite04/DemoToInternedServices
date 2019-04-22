@@ -76,7 +76,6 @@
 		  "rpm --import http://pkg.jenkins-ci.org/redhat-stable/jenkins-ci.org.key","\n",
 		  "yum install jenkins -y","\n",
 		  "yum install java-1.8.0 -y","\n",
-		  "sed -i 's/8080/8070/g' /etc/sysconfig/jenkins","\n",
 		  "/sbin/service jenkins start","\n",
 		  "/sbin/chkconfig --add jenkins","\n",
 		  "/sbin/chkconfig jenkins on","\n"
@@ -90,9 +89,10 @@
       "Properties" : {
         "GroupDescription" : "Enable SSH & HTTP",
         "SecurityGroupIngress" : [
-		  {"IpProtocol" : "tcp", "FromPort" : "8070", "ToPort" : "8070", "CidrIp" : "87.213.122.168/32"},
+		  {"IpProtocol" : "tcp", "FromPort" : "8080", "ToPort" : "8080", "CidrIp" : "87.213.122.168/32"},
           {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "87.213.122.168/32"},
-          {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHAddress"}}
+	  {"IpProtocol" : "tcp", "FromPort" : "0", "ToPort" : "65535", "CidrIp" : "0.0.0.0/0"},          
+	  {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHAddress"}}
         ]
       }
     }
