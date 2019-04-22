@@ -1,5 +1,17 @@
 # AWS Architecture Setup
 
+The platform must offer the following services:
+- **REQ 1** - Centrilized logging and monitoring
+- **REQ 2** - An interface for automating containerized application deployments
+- **REQ 3** - High availability
+- **REQ 4** - An interface for automatically provisioning the platform.
+
+Objective:
+- **REQ 5** - Create a design on how you would host this type of application on AWS.
+- **REQ 6** - Create one (or multiple) CloudFormation templates to setup the infrastructure for this application
+- **REQ 7** - Deploy the infrastructure and application on AWS
+- **REQ 8** - Give a demo and present the outcome during your 2nd interview.
+
 There are two parts to the setup,
 - **Part 1** - Setting up the network infrastructure (VPC, Subnets, Security Groups)
 - **Part 2** - Hosting Application on AWS (Create EC2, Security Groups)
